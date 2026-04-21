@@ -7,6 +7,7 @@ import { ConfigModule } from '@nestjs/config';
 import { JwtAuthGuard } from './apis/auth/guards/jwt-auth.guard';
 import { APP_GUARD } from '@nestjs/core';
 import { WorkspaceModule } from './apis/workspace/workspace.module';
+import { TaskModule } from './apis/task/task.module';
 
 @Module({
   imports: [
@@ -16,6 +17,7 @@ import { WorkspaceModule } from './apis/workspace/workspace.module';
     // Import other modules here
     AuthModule,
     WorkspaceModule,
+    TaskModule,
   ],
   controllers: [AppController],
   providers: [AppService, { provide: APP_GUARD, useClass: JwtAuthGuard }],
