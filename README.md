@@ -1,6 +1,9 @@
+````md
 # Backend - Realtime Task Collaboration System
 
-NestJS backend for realtime task collaboration system
+NestJS backend for realtime task collaboration system.
+
+---
 
 ## Tech Stack
 
@@ -12,6 +15,8 @@ NestJS backend for realtime task collaboration system
 - **Authentication**: JWT + Passport
 - **Validation**: class-validator + class-transformer
 - **Password Hash**: bcrypt
+
+---
 
 ## Installation
 
@@ -37,26 +42,29 @@ pnpm run makemigrations:deploy
 # 4. Run development server
 pnpm run start:dev
 ```
+````
+
+---
 
 ## Project Structure
 
-```
+```bash
 src/
 ├── apis/
-│   ├── auth/                     # Authentication module
-│   │   ├── auth.controller.ts    # POST /auth/register, /auth/login
-│   │   ├── auth.service.ts       # Business logic
+│   ├── auth/
+│   │   ├── auth.controller.ts
+│   │   ├── auth.service.ts
 │   │   ├── auth.module.ts
 │   │   ├── guards/
-│   │   │   ├── jwt-auth.guard.ts      # Global JWT guard
-│   │   │   └── local-auth.guard.ts    # Username/password auth
+│   │   │   ├── jwt-auth.guard.ts
+│   │   │   └── local-auth.guard.ts
 │   │   ├── strategies/
-│   │   │   ├── jwt.strategy.ts        # JWT extraction
-│   │   │   └── local.strategy.ts      # Verify credentials
+│   │   │   ├── jwt.strategy.ts
+│   │   │   └── local.strategy.ts
 │   │   └── dto/
 │   │       └── register.dto.ts
 │   │
-│   ├── workspace/                # Workspace management
+│   ├── workspace/
 │   │   ├── workspace.controller.ts
 │   │   ├── workspace.service.ts
 │   │   ├── workspace.module.ts
@@ -65,7 +73,7 @@ src/
 │   │       ├── query-workspace.dto.ts
 │   │       └── invite-workspace.dto.ts
 │   │
-│   └── task/                     # Task management + realtime
+│   └── task/
 │       ├── task.controller.ts
 │       ├── task.service.ts
 │       ├── task.module.ts
@@ -76,17 +84,17 @@ src/
 │           └── query-task.dto.ts
 │
 ├── gateways/
-│   └── realtime/                 # WebSocket realtime
-│       ├── realtime.gateway.ts   # Socket.io event handlers
+│   └── realtime/
+│       ├── realtime.gateway.ts
 │       └── realtime.module.ts
 │
 ├── common/
 │   ├── decorators/
-│   │   ├── current-user.decorator.ts   # Extract JWT payload
-│   │   └── public.decorator.ts         # Mark route as public
+│   │   ├── current-user.decorator.ts
+│   │   └── public.decorator.ts
 │   ├── enums/
-│   │   ├── task.enum.ts                # TaskStatus
-│   │   └── workspace.enum.ts           # WorkspaceMemberRole
+│   │   ├── task.enum.ts
+│   │   └── workspace.enum.ts
 │   ├── constants/
 │   │   ├── auth.ts
 │   │   └── pagination.constant.ts
@@ -94,287 +102,188 @@ src/
 │       └── paginate.dto.ts
 │
 ├── prisma/
-│   ├── prisma.module.ts          # Database module
-│   └── prisma.service.ts         # Prisma client service
+│   ├── prisma.module.ts
+│   └── prisma.service.ts
 │
 ├── utils/
-│   └── helpers.util.ts           # Utility functions
+│   └── helpers.util.ts
 │
-├── app.module.ts                 # Root module
+├── app.module.ts
 ├── app.controller.ts
 ├── app.service.ts
-└── main.ts                       # Entry point
+└── main.ts
 ```
+
+---
 
 ## API Endpoints
 
 ### Authentication
 
-```
+```http
 POST /auth/register
-- Register new user
-- Public: Yes
-- Body: { email, password }
-- Response: { id, email }
-
 POST /auth/login
-- Login user
-- Auth: LocalStrategy (email + password)
-- Response: { accessToken }
-
 GET /auth/profile
-- Get current user
-- Protected: JWT
-- Response: { id, email, createdAt }
 ```
 
 ### Workspace
 
-```
+```http
 POST /workspaces
-- Create workspace
-- Protected: JWT
-- Body: { name }
-- Response: { id, name, ownerId }
-
 GET /workspaces?page=1&pageSize=10
-- Get user workspaces
-- Protected: JWT
-- Response: { workspaces[], pagination }
-
 POST /workspaces/:id/invite
-- Invite user to workspace
-- Protected: JWT (owner only)
-- Body: { email }
-- Response: { id, workspaceId, userId, role }
 ```
 
 ### Task
 
-```
+```http
 POST /tasks
-- Create task
-- Protected: JWT
-- Body: { workspaceId, title, description? }
-- Response: { id, workspaceId, title, status, version, ... }
-
 GET /tasks/:workspaceId?page=1&pageSize=20
-- Get workspace tasks
-- Protected: JWT
-- Response: { tasks[], pagination }
-
 PATCH /tasks/:taskId
-- Update task (status, title, description)
-- Protected: JWT
-- Body: { status?, title?, description?, version }
-- Note: Version required for conflict detection
-- Response: { id, status, version (incremented), ... }
-
 DELETE /tasks/:taskId
-- Delete task (creator or owner only)
-- Protected: JWT
-- Body: { version }
-- Response: { message: "Task deleted successfully" }
 ```
+
+---
 
 ## WebSocket Events
 
 ### Connection
 
-```typescript
-// Client connects with JWT token
+```ts
 io('http://localhost:3000', {
   auth: { token: 'jwt-token' },
 });
-
-// Server verifies token and stores user data
 ```
 
-### Join/Leave Workspace
+### Workspace Events
 
-```typescript
-// Join workspace room
-socket.emit('join_workspace', { workspaceId: 'uuid' });
-
-// Leave workspace room
-socket.emit('leave_workspace', { workspaceId: 'uuid' });
+```ts
+socket.emit('join_workspace', { workspaceId });
+socket.emit('leave_workspace', { workspaceId });
 ```
 
 ### Task Events
 
-```typescript
-// Server emits to workspace:uuid room
+```ts
 server.to('workspace:uuid').emit('task_created', taskData);
 server.to('workspace:uuid').emit('task_updated', taskData);
 server.to('workspace:uuid').emit('task_deleted', taskId);
 server.to('workspace:uuid').emit('task_error', { type, message });
 ```
 
-## 🏃 Running
+---
+
+## Running
 
 ### Development
 
 ```bash
-# Start with auto-reload
 pnpm run start:dev
-
-# Debug mode
 pnpm run start:debug
-
-# Watch mode
 pnpm run start:watch
 ```
 
 ### Production
 
 ```bash
-# Build
 pnpm run build
-
-# Run
 pnpm run start:prod
 ```
 
-## 🗄️ Database
+---
+
+## Database
 
 ### Migrations
 
 ```bash
-# Create new migration
-pnpm run makemigrations:create -- migration_name
-
-# Apply pending migrations
+pnpm run makemigrations:create -- name
 pnpm run makemigrations:deploy
-
-# Reset (development only)
 pnpm run makemigrations:reset
 ```
 
-## 🧪 Testing
+---
+
+## Testing
 
 ```bash
-# Unit tests
 pnpm run test
-
-# Watch mode
 pnpm run test:watch
-
-# Coverage
 pnpm run test:cov
-
-# E2E tests
 pnpm run test:e2e
 ```
 
-## 📝 Linting
+---
+
+## Linting
 
 ```bash
-# Run ESLint
 pnpm run lint
-
-# Format code
 pnpm run format
 ```
+
+---
 
 ## Environment Variables
 
 ```env
-# Server
 PORT=3000
 
-# Database
 DATABASE_URL="postgresql://user:password@localhost:5432/task_realtime"
-PRISMA_OUTPUT_DIR=./prisma/generated
 
-# JWT
-JWT_SECRET="your-secret-key-here"
-JWT_EXPIRATION="your_jwt_expiration_time"
+JWT_SECRET="your-secret-key"
+JWT_EXPIRATION="1d"
 
-# CORS
 CORS_ORIGIN=http://localhost:5173
 
-# Other
 SALT_ROUNDS=10
 ```
 
+---
+
 ## Key Features
 
-### JWT Authentication
+- JWT Authentication
+- Workspace management (owner/member roles)
+- Task CRUD with version control
+- Realtime updates via WebSocket
+- Conflict detection
+- Secure password hashing (bcrypt)
+- Request validation
 
-- Register & login
-- Token-based access control
-- Protected routes with JwtAuthGuard
-- Public routes with @Public() decorator
-
-### Workspace Management
-
-- Create workspace (owner role)
-- List user workspaces
-- Invite users (owner only)
-- Member role management (OWNER, MEMBER)
-
-### Task Management
-
-- Create task in workspace
-- Update task (status, title, description)
-- Delete task (creator or owner)
-- Pagination
-- Version control for conflict detection
-
-### WebSocket Realtime
-
-- Real-time task updates
-- Room-based broadcasting (workspace:id)
-- JWT token verification
-- Error event broadcasting (CONFLICT, FORBIDDEN)
-
-### Security
-
-- JWT authentication
-- bcrypt password hashing
-- WebSocket token verification
-- Member authorization checks
-- Request validation (class-validator)
-- Version conflict detection
+---
 
 ## Troubleshooting
 
 ### Port already in use
 
 ```bash
-# Kill process on port 3000
-lsof -i :3000 | grep LISTEN | awk '{print $2}' | xargs kill -9
+lsof -i :3000 | xargs kill -9
 ```
 
 ### Database connection failed
 
 ```bash
-# Verify PostgreSQL is running
 psql -c "SELECT version();"
-
-# Check DATABASE_URL format
-# postgresql://user:password@host:5432/database
 ```
 
-### Migration failed
+### Migration issues
 
 ```bash
-# Reset database (development only)
 pnpm run makemigrations:reset
 ```
 
+---
+
 ## References
 
-- [NestJS Docs](https://docs.nestjs.com/)
-- [Prisma Docs](https://www.prisma.io/docs/)
-- [Socket.io Docs](https://socket.io/docs/)
-- [TypeScript Docs](https://www.typescriptlang.org/docs/)
+- [https://docs.nestjs.com/](https://docs.nestjs.com/)
+- [https://www.prisma.io/docs/](https://www.prisma.io/docs/)
+- [https://socket.io/docs/](https://socket.io/docs/)
+- [https://www.typescriptlang.org/docs/](https://www.typescriptlang.org/docs/)
 
 ---
 
-**Last Updated**: April 22, 2026
-#   r e a l t i m e - t a s k - c o l l a b o r a t i o n - b a c k e n d 
- 
- #   r e a l t i m e - t a s k - c o l l a b o r a t i o n - b a c k e n d 
- 
- 
+```
+
+```
