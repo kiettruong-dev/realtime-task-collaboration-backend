@@ -8,6 +8,7 @@ import { JwtAuthGuard } from './apis/auth/guards/jwt-auth.guard';
 import { APP_GUARD } from '@nestjs/core';
 import { WorkspaceModule } from './apis/workspace/workspace.module';
 import { TaskModule } from './apis/task/task.module';
+import { RealtimeModule } from './gateways/realtime/realtime.module';
 
 @Module({
   imports: [
@@ -18,6 +19,7 @@ import { TaskModule } from './apis/task/task.module';
     AuthModule,
     WorkspaceModule,
     TaskModule,
+    RealtimeModule,
   ],
   controllers: [AppController],
   providers: [AppService, { provide: APP_GUARD, useClass: JwtAuthGuard }],

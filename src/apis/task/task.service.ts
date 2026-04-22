@@ -14,10 +14,14 @@ import { UpdateTaskDto } from './dto/update-task.dto';
 import { WorkspaceMemberRole } from '@/common/enums/workspace.enum';
 import { TaskStatus } from '@/common/enums/task.enum';
 import { DeleteTaskDto } from './dto/delete-task.dto';
+import { RealtimeGateway } from '@/gateways/realtime/realtime.gateway';
 
 @Injectable()
 export class TaskService {
-  constructor(private readonly prismaService: PrismaService) {}
+  constructor(
+    private readonly prismaService: PrismaService,
+    private realtimeGateway: RealtimeGateway,
+  ) {}
 
   private async checkMember(workspaceId: string, userId: string) {
     const member = await this.prismaService.workspaceMember.findFirst({
@@ -54,6 +58,9 @@ export class TaskService {
           createdBy: currentUser.id,
         },
       });
+      this.realtimeGateway.server
+        .to(`workspace:${workspaceId}`)
+        .emit('task_created', task);
       return task;
     } catch (error) {
       throw error;
@@ -151,13 +158,25 @@ export class TaskService {
       });
 
       if (result.count === 0) {
+        this.realtimeGateway.server
+          .to(`workspace:${task.workspaceId}`)
+          .emit('task_error', {
+            type: 'CONFLICT',
+            taskId,
+            message: 'Task has been updated by another user',
+          });
         throw new ConflictException(
           'Task has been updated by another user. Please refresh and try again.',
         );
       }
-      return this.prismaService.task.findUnique({
+
+      const updatedTask = await this.prismaService.task.findUnique({
         where: { id: taskId },
       });
+      this.realtimeGateway.server
+        .to(`workspace:${task.workspaceId}`)
+        .emit('task_updated', updatedTask);
+      return updatedTask;
     } catch (error) {
       throw error;
     }
@@ -192,6 +211,9 @@ export class TaskService {
           'Task has been updated or deleted by another user. Please refresh and try again.',
         );
       }
+      this.realtimeGateway.server
+        .to(`workspace:${task.workspaceId}`)
+        .emit('task_deleted', taskId);
       return {
         message: 'Task deleted successfully',
       };

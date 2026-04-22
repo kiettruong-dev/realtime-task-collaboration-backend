@@ -59,6 +59,12 @@ export class WorkspaceService {
             },
           },
           include: {
+            owner: {
+              select: {
+                id: true,
+                email: true,
+              },
+            },
             members: {
               include: {
                 user: {

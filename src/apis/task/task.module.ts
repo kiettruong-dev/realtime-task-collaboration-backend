@@ -2,9 +2,10 @@ import { Module } from '@nestjs/common';
 import { TaskService } from './task.service';
 import { TaskController } from './task.controller';
 import { PrismaModule } from '@/prisma/prisma.module';
+import { RealtimeModule } from '@/gateways/realtime/realtime.module';
 
 @Module({
-  imports: [PrismaModule],
+  imports: [PrismaModule, RealtimeModule],
   controllers: [TaskController],
   providers: [TaskService],
   exports: [TaskService],
