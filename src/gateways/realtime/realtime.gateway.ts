@@ -33,7 +33,8 @@ export class RealtimeGateway
 
       const payload: JwtPayload = this.jwtService.verify(token);
       client.data.user = payload;
-    } catch (err: any) {
+      client.join(`user:${payload.sub}`);
+    } catch {
       client.disconnect();
     }
   }

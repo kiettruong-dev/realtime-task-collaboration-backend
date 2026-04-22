@@ -10,10 +10,14 @@ import { WorkspaceMemberRole } from '@/common/enums/workspace.enum';
 import { QueryWorkspaceDto } from './dto/query-workspace.dto';
 import { calculatePagination } from '@/utils/helpers.util';
 import { InviteWorkspaceDto } from './dto/invite-workspace.dto';
+import { RealtimeGateway } from '@/gateways/realtime/realtime.gateway';
 
 @Injectable()
 export class WorkspaceService {
-  constructor(private readonly prismaService: PrismaService) {}
+  constructor(
+    private readonly prismaService: PrismaService,
+    private readonly realtimeGateway: RealtimeGateway,
+  ) {}
 
   async createWorkspace(
     currentUser: CurrentUserType,
@@ -152,6 +156,11 @@ export class WorkspaceService {
           userId: user.id,
         },
       });
+
+      this.realtimeGateway.server
+        .to(`user:${user.id}`)
+        .emit('workspace_invited', workspace);
+
       return newMember;
     } catch (error: any) {
       throw error;
